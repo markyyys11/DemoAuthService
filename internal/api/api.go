@@ -1,8 +1,8 @@
 package api
 
 import (
+	"DemoAuthService/internal/api/module"
 	"DemoAuthService/internal/config"
-	"DemoAuthService/internal/handlers"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -18,17 +18,15 @@ func NewServer() *server {
 	}
 }
 
-func (s *server) RegisterHandlers(handlers ...handlers.Handler) {
-	r := s.eng.Group("/api")
+func (s *server) RegisterHandlers(handlers ...module.Handler) {
+	r := s.eng.Group("/api/v1")
 	for _, h := range handlers {
 		h.RegisterRoutes(r)
 	}
 }
 
 func (s *server) Run() error {
-	// Define a simple GET endpoint
 	s.eng.GET("/ping", func(c *gin.Context) {
-		// Return JSON response
 		c.JSON(http.StatusOK, gin.H{
 			"message": "pong",
 		})
