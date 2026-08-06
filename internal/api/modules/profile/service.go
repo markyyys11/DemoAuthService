@@ -2,21 +2,22 @@ package profile
 
 import (
 	"context"
-	"database/sql"
+
+	"github.com/jackc/pgx/v5"
 )
 
 type Service interface {
 	GetUserInfo(ctx context.Context) error
 }
 
-func NewService(repo *sql.Conn) Service {
+func NewService(repo *pgx.Conn) Service {
 	return &service{
 		repo: repo,
 	}
 }
 
 type service struct {
-	repo *sql.Conn
+	repo *pgx.Conn
 }
 
 func (s *service) GetUserInfo(ctx context.Context) error {

@@ -32,14 +32,14 @@ func new() conf {
 	return conf{
 		Debug:       getBool("DEBUG", false),
 		PostgresURL: getStr("POSTGRES_URL", ""),
-		Addr:        getStr("ADDR", ":8080"),
+		Port:        getStr("ADDR", ":8080"),
 	}
 }
 
 type conf struct {
 	Debug       bool
 	PostgresURL string
-	Addr        string
+	Port        string
 }
 
 func getBool(key string, def bool) bool {

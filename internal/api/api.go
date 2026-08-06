@@ -1,36 +1,56 @@
 package api
 
 import (
-	"DemoAuthService/internal/api/module"
+	"DemoAuthService/internal/api/middlewares"
+	"DemoAuthService/internal/api/modules/auth"
+	"DemoAuthService/internal/api/modules/profile"
 	"DemoAuthService/internal/config"
+	"database/sql"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5"
 )
 
 type server struct {
-	eng *gin.Engine
+	engine *gin.Engine
+	db     *sql.Conn
+	server *http.Server
 }
 
-func NewServer() *server {
+func NewServer(db *sql.DB) *server {
+
 	return &server{
-		eng: gin.Default(),
+		engine: gin.Default(),
 	}
 }
 
-func (s *server) RegisterHandlers(handlers ...module.Handler) {
-	r := s.eng.Group("/api/v1")
-	for _, h := range handlers {
-		h.RegisterRoutes(r)
-	}
-}
+func (s *server) Run(conn *pgx.Conn) error {
+	r := s.engine.Group("/api/v1")
 
-func (s *server) Run() error {
-	s.eng.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
+	authService := auth.NewService(conn)
+	authHandler := auth.NewHandler(authService)
+	authHandler.RegisterRoutes(r)
+
+	profileService := profile.NewService(conn)
+	profileHandler := profile.NewHandler(profileService)
+	profileHandler.RegisterRoutes(r, middlewares.Auth())
+
+	s.engine.GET("/ping", func(ctx *gin.Context) {
+		ctx.JSON(http.StatusOK, gin.H{
 			"message": "pong",
 		})
 	})
 
-	return s.eng.Run(config.Default().Addr)
+	s.engine.GET("/err", func(ctx *gin.Context) {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": "test error method",
+		})
+	})
+
+	return s.engine.Run(config.Default().Port)
 }
+
+// func (s *server) Stop() {
+// 	s.engine.
+// }
